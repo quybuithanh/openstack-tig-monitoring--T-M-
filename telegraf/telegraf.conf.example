@@ -1,0 +1,25 @@
+# Safe template only. Replace placeholders on each VM; never commit a real token.
+
+[agent]
+  interval = "10s"
+  flush_interval = "10s"
+  hostname = "REPLACE_WITH_VM_HOSTNAME"
+
+[[inputs.cpu]]
+  percpu = true
+  totalcpu = true
+  collect_cpu_time = false
+  report_active = true
+
+[[inputs.mem]]
+[[inputs.disk]]
+[[inputs.diskio]]
+[[inputs.system]]
+[[inputs.net]]
+
+[[outputs.influxdb_v2]]
+  # Monitor: localhost. Targets: monitor-01 Host-only IP.
+  urls = ["http://INFLUXDB_HOST:8086"]
+  token = "REPLACE_WITH_WRITE_ONLY_BUCKET_TOKEN"
+  organization = "REPLACE_WITH_ORGANIZATION"
+  bucket = "system_metrics"
