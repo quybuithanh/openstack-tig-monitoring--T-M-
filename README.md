@@ -1,12 +1,12 @@
 # TIG Stack Monitoring Lab
 
-Bai tap lon mo phong giam sat ha tang Linux bang Telegraf, InfluxDB va Grafana tren VirtualBox.
+Bài tập lớn mô phỏng giám sát hạ tầng Linux bằng Telegraf, InfluxDB và Grafana trên VirtualBox.
 
-## Mo hinh
+## Mô hình
 
 ```text
-May Windows (host)
-  |-- VirtualBox NAT (Internet de cai cap nhat)
+Máy Windows (host)
+  |-- VirtualBox NAT (Internet để tải và cập nhật)
   `-- VirtualBox Host-only: 192.168.56.0/24
         |-- monitor-01: InfluxDB :8086, Grafana :3000, Telegraf
         |-- target-01: Telegraf
@@ -14,53 +14,50 @@ May Windows (host)
         `-- target-03: Telegraf
 ```
 
-InfluxDB va Grafana dat tren `monitor-01`; Telegraf tren ca bon may gui metric ve InfluxDB.
+InfluxDB và Grafana đặt trên `monitor-01`; Telegraf rên cả bốn máy gửi metric về InfluxDB.
 
-## Danh sach VM
+## Danh sách VM
 
-| Hostname     | Vai tro                     | IP Host-only                                 | Trang thai        | Phu trach      |
+| Hostname     | Vai trò                     | IP Host-only                                 | Trạng thái        | Phụ trách      |
 | ------------ | --------------------------- | -------------------------------------------- | ----------------- | -------------- |
-| `monitor-01` | InfluxDB, Grafana, Telegraf | `192.168.56.101` (da thay tren may hien tai) | Dang cau hinh TIG | Chua phan cong |
-| `target-01`  | May muc tieu, Telegraf      | 192.168.56.103                               | Da kiem tra ping  | Chua phan cong |
-| `target-02`  | May muc tieu, Telegraf      | 192.168.56.104                               | Da kiem tra ping  | Chua phan cong |
-| `target-03`  | May muc tieu, Telegraf      | 192.168.56.105                               | Da kiem tra ping  | Chua phan cong |
+| `monitor-01` | InfluxDB, Grafana, Telegraf | `192.168.56.101` (đã thấy trên máy hiện tại) | Đang cấu hình TIG | Chưa phân công |
+| `target-01`  | May muc tieu, Telegraf      | 192.168.56.103                               | Đã kiểm tra ping  | Chưa phân công |
+| `target-02`  | May muc tieu, Telegraf      | 192.168.56.104                               | Đã kiểm tra ping  | Chưa phân công |
+| `target-03`  | May muc tieu, Telegraf      | 192.168.56.105                               | Đã kiểm tra ping  | Chưa phân công |
+## Phiên bản
 
-IP co the doi neu DHCP cap lai. Kiem tra bang `ip -4 addr` tren tung VM.
-
-## Phien ban
-
-- Ubuntu Server: 24.04 LTS (can xac nhan tren tung VM).
+- Ubuntu Server: 24.04 LTS (cần xác nhận trên từng VM).
 - InfluxDB OSS: 2.x.
 - Telegraf: 1.x.
-- Grafana OSS: stable tu kho chinh thuc.
+- Grafana OSS: stable từ kho chính thức.
 
-## Tien do
+## Tiến độ
 
-- [x] Tao 4 VM va dat hostname.
-- [x] Kiem tra ping noi bo giua monitor va target.
-- [x] Cai va khoi tao InfluxDB tren monitor-01.
-- [x] Cai Telegraf tren monitor-01.
-- [ ] Sua loi `401 Unauthorized` de Telegraf ghi metric vao bucket.
-- [ ] Cai Grafana va ket noi voi InfluxDB.
-- [ ] Cai Telegraf tren ba target, xac nhan metric theo hostname.
-- [ ] Tao dashboard, cap nhat IP va bo sung anh minh chung da che secret.
+- [x] Tạo 4 VM và đặt hostname.
+- [x] Kiểm tra ping nội bộ giữa monitor và target.
+- [x] Cài và khởi tạo InfluxDB trên monitor-01.
+- [x]Cài Telegraf trên monitor-01.
+- [ ] Sửa lỗi `401 Unauthorized` đẻ Telegraf ghi metric vào bucket.
+- [ ] Cài Grafana và kết nối với InfluxDB.
+- [ ] Cài Telegraf trên ba target, xác nhận metric theo hostname.
+- [ ] Cài Telegraf trên ba target, xác nhận metric theo hostname.
 
-Telegraf dang chay nhung InfluxDB tra `401 Unauthorized`; pipeline chua hoat dong hoan chinh.
+Telegraf đang chạy nhưng InfluxDB trả `401 Unauthorized`; pipeline chưa hoạt động hoàn chỉnh.
 
-## Bat dau
+## Bắt đầu
 
-1. Doc [huong dan mang](docs/network.md).
-2. Doc [huong dan TIG](docs/setup-tig.md).
-3. Dung [cau hinh Telegraf mau](telegraf/telegraf.conf.example). Khong commit cau hinh that co token.
+1. Đọc [hướng dẫn mạng](docs/network.md).
+2. Đọc [hướng dẫn TIG](docs/setup-tig.md).
+3. Dùng [cấu hình Telegraf mau](telegraf/telegraf.conf.example). Không commit cấu hình thật có token.
 
-## Bao mat
+## Bảo mật
 
-- Khong commit API token, mat khau, SSH private key, ISO hay dia ao VM.
-- Telegraf chi can token co quyen Write tren bucket can ghi.
-- Neu token da lo trong anh/chat/repository, thu hoi va tao token moi.
-- Khong dua secret vao GitHub; chi chia se cau hinh mau.
+- Không commit API token, mật khẩu, SSH private key, ISO hay đĩa ảo VM.
+- Telegraf chỉ cần token có quyền Write trên bucket cần ghi.
+- Nếu token đã lộ trong ảnh/chat/repository, thu hồi và tạo token mới.
+- Không đưa secret vào GitHub; chỉ chia sẻ cấu hình mẫu.
 
-## Tai lieu chinh thuc
+## Tài liệu chính thức
 
 - [InfluxDB OSS 2](https://docs.influxdata.com/influxdb/v2/install/)
 - [Telegraf InfluxDB v2 output](https://docs.influxdata.com/telegraf/v1/output-plugins/influxdb_v2/)
