@@ -1,29 +1,37 @@
-# Cai dat va cau hinh TIG
+# Cài đặt và cấu hình TIG
 
-Huong dan nay ghi lai lab Ubuntu Server tren VirtualBox. Cac lenh cai goi can Internet qua NAT va kho phan mem chinh thuc.
+Hướng dẫn này ghi lại quá trình triển khai phòng lab Ubuntu Server trên VirtualBox. Các lệnh cài đặt gói phần mềm cần có kết nối Internet thông qua NAT và sử dụng kho phần mềm chính thức.
 
-## Phan bo
+## Phân bổ
 
-| May | Thanh phan |
+| Máy | Thành phần |
 |---|---|
 | `monitor-01` | InfluxDB OSS 2, Grafana OSS, Telegraf |
-| `target-01` den `target-03` | Telegraf |
+| `target-01` đến `target-03` | Telegraf |
 
-## InfluxDB tren monitor-01
+## Cài đặt InfluxDB trên monitor-01
 
-Da cai goi `influxdb2`, bat dich vu `influxdb` va khoi tao qua `http://<IP-monitor>:8086`.
+Đã cài đặt gói `influxdb2`, khởi động dịch vụ `influxdb` và khởi tạo hệ thống thông qua địa chỉ `http://<IP-monitor>:8086`.
 
-Gia tri du kien, can doi chieu giao dien thuc te:
+Các giá trị dự kiến, cần đối chiếu với giao diện thực tế:
 
 - Organization: `lab`
 - Bucket: `system_metrics`
-- Telegraf token: Custom token chi co quyen Write tren bucket.
+- Telegraf token: Token tùy chỉnh chỉ có quyền ghi (Write) trên bucket.
 
-Khong ghi token that vao tai lieu, anh chup, cau hinh mau hoac Git. Token Operator da lo trong anh setup can duoc thu hoi; dung token gioi han quyen moi.
+Không ghi token thật vào tài liệu, ảnh chụp màn hình, tệp cấu hình mẫu hoặc Git.
 
-## Telegraf
+Token Operator đã bị lộ trong ảnh chụp màn hình thiết lập cần được thu hồi. Hãy sử dụng token mới với phạm vi quyền hạn được giới hạn phù hợp.
 
-Cau hinh mau: [`telegraf/telegraf.conf.example`](../telegraf/telegraf.conf.example). Tao cau hinh rieng tai `/etc/telegraf/telegraf.conf`; dat hostname dung voi VM. Tren target, URL phai tro den IP Host-only cua monitor; tren monitor co the dung localhost.
+## Cấu hình Telegraf
+
+Tệp cấu hình mẫu: [`telegraf/telegraf.conf.example`](../telegraf/telegraf.conf.example).
+
+Tạo tệp cấu hình riêng tại `/etc/telegraf/telegraf.conf` và thiết lập hostname chính xác tương ứng với từng máy ảo.
+
+Trên các máy target, URL phải trỏ đến địa chỉ IP Host-only của máy `monitor-01`. Trên máy `monitor-01`, có thể sử dụng `localhost`.
+
+Thực hiện các lệnh sau:
 
 ```bash
 sudo telegraf --config /etc/telegraf/telegraf.conf --test
@@ -33,28 +41,37 @@ sudo systemctl status telegraf
 sudo journalctl -u telegraf -n 30 --no-pager
 ```
 
-`telegraf --test` khong gui metric den output. Loi `401 Unauthorized` co nghia InfluxDB tu choi xac thuc/quyen; kiem tra token, org, bucket va quyen Write. Khong chia se token hoac log co secret.
+Lưu ý:
 
-## Grafana
+- Lệnh `telegraf --test` không gửi dữ liệu chỉ số (metric) đến đầu ra (output).
+- Lỗi `401 Unauthorized` có nghĩa là InfluxDB từ chối xác thực hoặc quyền truy cập.
+- Khi gặp lỗi này, hãy kiểm tra token, organization, bucket và quyền Write.
+- Không chia sẻ token hoặc các tệp nhật ký (log) có chứa thông tin bí mật.
 
-Cai Grafana OSS tu [kho APT chinh thuc](https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/), sau do:
+## Cài đặt và cấu hình Grafana
+
+Cài đặt Grafana OSS từ [kho APT chính thức](https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/).
+
+Sau khi cài đặt, khởi động dịch vụ bằng lệnh:
 
 ```bash
 sudo systemctl enable --now grafana-server
 ```
 
-Mo `http://<IP-monitor>:3000`, doi mat khau lan dau va them InfluxDB data source:
+Truy cập địa chỉ `http://<IP-monitor>:3000`, thay đổi mật khẩu trong lần đăng nhập đầu tiên và thêm nguồn dữ liệu InfluxDB (InfluxDB Data Source) với các thông tin sau:
 
 - URL: `http://localhost:8086`
 - Query language: Flux
-- Organization/bucket: dung ten thuc te
-- Token: token Read rieng cho Grafana neu cau hinh
+- Organization/Bucket: Sử dụng tên thực tế đã cấu hình.
+- Token: Sử dụng token Read riêng cho Grafana nếu đã cấu hình.
 
-Bam Save & test.
+Nhấn **Save & Test** để lưu cấu hình và kiểm tra kết nối.
 
-## Kiem tra du lieu
+## Kiểm tra dữ liệu
 
-Trong Grafana Explore hoac InfluxDB Data Explorer, chon bucket va khoang thoi gian 15 phut:
+Trong Grafana Explore hoặc InfluxDB Data Explorer, chọn bucket và thiết lập khoảng thời gian 15 phút.
+
+Sử dụng truy vấn Flux sau để kiểm tra dữ liệu CPU:
 
 ```flux
 from(bucket: "system_metrics")
@@ -62,10 +79,10 @@ from(bucket: "system_metrics")
   |> filter(fn: (r) => r._measurement == "cpu")
 ```
 
-## Viec con lai
+## Các công việc còn lại
 
-- [ ] Sua 401, xac nhan metric vao bucket.
-- [ ] Cai Telegraf tren ba target, kiem tra metric theo hostname.
-- [ ] Cai Grafana, Save & test data source.
-- [ ] Tao dashboard CPU, RAM, disk, network.
-- [ ] Ghi phien ban, IP thuc te va anh minh chung da an secret.
+- [ ] Khắc phục lỗi `401`, xác nhận dữ liệu metric được gửi thành công vào bucket.
+- [ ] Cài đặt Telegraf trên ba máy target và kiểm tra metric theo từng hostname.
+- [ ] Cài đặt Grafana và nhấn Save & Test để kiểm tra nguồn dữ liệu.
+- [ ] Tạo dashboard theo dõi CPU, RAM, ổ đĩa (Disk) và mạng (Network).
+- [ ] Ghi lại phiên bản phần mềm, địa chỉ IP thực tế và bổ sung ảnh minh chứng đã che thông tin bí mật.
