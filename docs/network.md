@@ -1,15 +1,15 @@
-# Mang VirtualBox
+# Mạng VirtualBox
 
-## Mo hinh
+## Mô hình
 
-Moi VM dung hai adapter:
+Mỗi máy ảo (VM) sử dụng hai bộ điều hợp mạng (Adapter):
 
-1. Adapter 1: NAT de Ubuntu truy cap Internet khi cap nhat/cai goi.
-2. Adapter 2: Host-only de host va bon VM trao doi trong mang lab.
+1. Adapter 1: NAT để Ubuntu truy cập Internet khi cập nhật hệ thống hoặc cài đặt các gói cần thiết.
+2. Adapter 2: Host-only để máy tính chủ (Host) và bốn máy ảo trao đổi dữ liệu trong mạng phòng lab.
 
-Chon cung mot Host-only network cho ca bon VM. Mang dang dung co dai `192.168.56.0/24`; doc IP thuc te tren tung may, khong tu gan theo vi du.
+Chọn cùng một mạng Host-only cho cả bốn máy ảo. Mạng đang sử dụng có dải địa chỉ `192.168.56.0/24`; kiểm tra địa chỉ IP thực tế trên từng máy, không tự gán địa chỉ theo ví dụ.
 
-## Kiem tra tren tung VM
+## Kiểm tra trên từng máy ảo
 
 ```bash
 hostname
@@ -17,11 +17,13 @@ ip -4 addr
 ip route
 ```
 
-Ghi IP cua interface Host-only vao bang README. `ip route` nen co default route tren NAT de truy cap Internet.
+Ghi địa chỉ IP của giao diện mạng Host-only vào bảng README.
 
-## Kiem tra noi bo
+Lệnh `ip route` cần hiển thị tuyến đường mặc định (default route) thông qua NAT để máy ảo có thể truy cập Internet.
 
-Tu `monitor-01`, ping tung target bang IP Host-only:
+## Kiểm tra kết nối nội bộ
+
+Từ máy ảo `monitor-01`, ping từng máy đích bằng địa chỉ IP Host-only:
 
 ```bash
 ping -c 4 192.168.56.103
@@ -29,16 +31,28 @@ ping -c 4 192.168.56.104
 ping -c 4 192.168.56.105
 ```
 
-Ping thanh cong xac nhan ket noi IP co ban. Neu that bai, kiem tra VM dang chay, Adapter 2 da bat va ca bon VM dung cung Host-only network.
+Ping thành công xác nhận kết nối IP cơ bản giữa các máy ảo.
 
-## Cong dich vu
+Nếu ping thất bại, hãy kiểm tra:
 
-- InfluxDB: TCP 8086 tu cac VM den monitor-01.
-- Grafana: TCP 3000 tu host/mang duoc cho phep.
+- Máy ảo đích đang hoạt động.
+- Adapter 2 đã được bật.
+- Cả bốn máy ảo đang sử dụng cùng một mạng Host-only.
 
-Chi cho phep tren mang lab; khong mo truc tiep ra Internet.
+## Cổng dịch vụ
+
+- InfluxDB: TCP `8086` cho phép các máy ảo kết nối đến `monitor-01`.
+- Grafana: TCP `3000` cho phép máy tính chủ hoặc mạng được cấp quyền truy cập.
+
+Chỉ cho phép truy cập trong phạm vi mạng phòng lab; không mở trực tiếp các dịch vụ ra Internet.
 
 - InfluxDB UI: `http://192.168.56.101:8086`
 - Grafana UI: `http://192.168.56.101:3000`
 
-Host-only chi noi VM voi host VirtualBox tren cung may; no khong ket noi ba may tinh cua cac thanh vien. Moi nguoi co the chay ban lab rieng. Demo chung can mang/VPN duoc chap nhan.
+## Lưu ý
+
+Mạng Host-only chỉ kết nối máy ảo với máy tính chủ VirtualBox trên cùng một máy tính vật lý; không kết nối trực tiếp ba máy tính của các thành viên khác.
+
+Mỗi thành viên có thể tự triển khai và chạy một phiên bản phòng lab riêng trên máy tính của mình.
+
+Để thực hiện demo chung, các thành viên cần sử dụng mạng hoặc VPN được cho phép để kết nối các máy tính với nhau.
